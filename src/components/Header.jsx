@@ -17,24 +17,35 @@ function Logo() {
       </div>
     );
   }
-  
+
+
   function Navbar() {
+    //const navigate = useNavigate();
     const navigate = useNavigate();
     return (
       <nav>
         <ul className="navbar">
           <li><a href="/Home">Firma</a></li>
-          <li><a href="/Multiple">Carga Multiple</a></li> 
+          
           <li><a href="/Historial">Historial</a></li>
    
           
-          <button className="btn">Log out</button>
+          <button className="btn" onClick={handleLogout}>Salir</button>
         </ul>
       </nav>
     );
   }
+
   
+  const handleLogout = () => {
+   // const navigate = useNavigate();
+    localStorage.removeItem("Token");
+    alert("Tokens have been removed");
+    navigate('/login')
+  };
+
   function Header() {
+    
     return (
       <header>
         <div className="h-container">
