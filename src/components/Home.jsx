@@ -6,6 +6,7 @@ import Header from './Header';
 import { db } from '../bd/firebase';
 import { collection, doc, addDoc, Timestamp  } from 'firebase/firestore';
 
+import Swal from "sweetalert2";
 import Box from '@mui/material/Box';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Typography from '@mui/material/Typography';
@@ -153,10 +154,19 @@ export default function Home() {
           
         }
         else{
-          alert(JSON.stringify(response.data.errors))
+          //alert(JSON.stringify(response.data.errors))
+          Swal.fire({
+            text: JSON.stringify(response.data.errors),
+            icon: "error"
+          });
         }
       } catch (error) {
-        console.error('Error uploading file:', error);
+        //console.error('Error uploading file:', error);
+        Swal.fire({
+          title: 'Error en archivo',
+          text: 'Error uploading file: ' + error,
+          icon: "error"
+        });
       }
 
 
@@ -166,11 +176,14 @@ export default function Home() {
    // Función para convertir base64 a Blob
         const descargarPDF = (pdf64) => {
           base64toBlob(pdf64);
+          handleClose()
           handleSaveFirestore();
+
       }
         
       const base64toBlob = (pdf64) => {
-        console.log(pdf64)
+        try {
+          console.log(pdf64)
         const info = document.getElementById('base64Info').textContent
          // Insert a link that allows the user to download the PDF file
         let link = document.createElement('a');
@@ -179,6 +192,21 @@ export default function Home() {
         link.href = 'data:application/octet-stream;base64,' + info;
         //document.body.appendChild(link);
         link.click();
+        Swal.fire({
+          position: "bottom-end",
+          icon: "success",
+          title: "Archivo descargado",
+          showConfirmButton: false,
+          timer: 1500
+        });
+
+        } catch (error) {
+          Swal.fire({
+            title: 'Error en descargar',
+            text: error,
+            icon: "error"
+          });
+        }
         };
   
       // Ver pdf en pantalla
@@ -205,7 +233,7 @@ export default function Home() {
           description: formData.cadenaOrigen,
           createdAt: Timestamp.fromDate(date)
         });
-        alert('Document successfully written!');
+        //alert('Document successfully written!');
       } catch (error) {
         console.error('Error writing document: ', error);
         alert('Error writing document');

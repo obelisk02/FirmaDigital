@@ -1,4 +1,4 @@
-import { useNavigate} from 'react-router-dom';
+import { useNavigate, Link} from 'react-router-dom';
 
 function Logo() {
     return (
@@ -27,10 +27,13 @@ function Logo() {
   function Header() {
 
     const navigate = useNavigate();
-   
+
+    const handleNavigation = (path) => {
+      navigate(path);
+    };
     const handleLogout = () => {
       localStorage.removeItem("Token");
-      alert("Tokens have been removed");
+      //alert("Tokens have been removed");
       navigate('/login')
     }
 
@@ -41,9 +44,9 @@ function Logo() {
 
           <nav>
         <ul className="navbar">
-          <li><a href="/Home">Firma</a></li>
+          <li ><Link to="/home">Firma</Link></li>
           
-          <li><a href="/Historial">Historial</a></li>
+          <li ><Link to="/historial">Historial </Link></li>
    
           
           <button className="btn" onClick={handleLogout}>Salir</button>

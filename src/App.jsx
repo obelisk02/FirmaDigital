@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Home from './components/Home';
-import Multiple from './components/Multiple';
 import Historial from './components/Historial';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -22,8 +21,7 @@ function App() {
             </PrivateRoute>
           }
         />
-         <Route path="/Multiple" element={<Multiple />} />
-         <Route path="/Historial" element={<Historial />} />
+         <Route path="/historial" element={<Historial />} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>

@@ -57,7 +57,7 @@ export default function Login() {
   
     const handleLogout = () => {
       localStorage.removeItem("Token");
-      alert("Tokens have been removed");
+      //alert("Tokens have been removed");
       navigate('/login')
     };
 
