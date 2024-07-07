@@ -1,38 +1,24 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import axios from 'axios';
 import Header from './Header';
+import { db } from '../bd/firebase';
+import { collection, doc, addDoc, Timestamp  } from 'firebase/firestore';
 
-import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardActionArea from '@mui/material/CardActionArea';
-import CardContent from '@mui/material/CardContent';
-import Checkbox from '@mui/material/Checkbox';
-import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import RadioGroup from '@mui/material/RadioGroup';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-
-import AccountBalanceRoundedIcon from '@mui/icons-material/AccountBalanceRounded';
-import CreditCardRoundedIcon from '@mui/icons-material/CreditCardRounded';
-import SimCardRoundedIcon from '@mui/icons-material/SimCardRounded';
-import WarningRoundedIcon from '@mui/icons-material/WarningRounded';
+import Modal from '@mui/material/Modal';
 import Container from '@mui/material/Container';
-
 import { styled } from '@mui/system';
-import Grid from '@mui/material/Grid';
+
 
 import FormGroup from "@mui/material/FormGroup";
 import InputAdornment from "@mui/material/InputAdornment";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Avatar from '@mui/material/Avatar';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Switch from '@mui/material/Switch';
@@ -48,55 +34,183 @@ import { MuiFileInput } from 'mui-file-input'
 
 export default function Home() {
 
-  const [cadenaOrigin, setCadenaOrigen] = useState(null);
-  const [claveTramite, setClaveTramite] = useState(null);
-  const [satpass, setSATPass] = useState(null);
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [error, setError] = useState('');
+  const [pdf64, setbase64PDF] = useState('');
   //const [navigate, setNavigate] = useState(false);
+  const [file, setFile] = React.useState(null)
+  const [archivo_cer, setCer] = React.useState(null)
+  const [archivo_key, setKey] = React.useState(null)
+
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const [isChecked1, setIsChecked1] = useState(true);
+  const [isChecked2, setIsChecked2] = useState(true);
+
+  const handleCheckboxChange1 = (event) => {
+    setIsChecked1(event.target.checked);
+  };
+  const handleCheckboxChange2 = (event) => {
+    setIsChecked2(event.target.checked);
+  };
+
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
+
 
   const URL = "https://tableroelectronico-qa.michoacan.gob.mx/api/firmarPDF";
   const navigate = useNavigate();
 
   const defaultTheme = createTheme();
 
-  const handleUpload = async (e) => {
-    e.preventDefault();
 
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append('pdf[]', file);
-    formData.append('cer', file);
-    formData.append('key', file);
-    formData.append('pass', satpass);
-    formData.append('cadenaOrigen', cadenaOrigin);
-    formData.append('clave_tramite', claveTramite);
-    formData.append('email', 1);
-    formData.append('encabezado', 1);
-
-
-    try {
-      const response = await axios.post(URL, formData,{
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
-        }
-      });
-    
-      //navigate('/home');
-    } catch (err) {
-      setError(response.data);
-    }
-  };
-
-
-
-    const [file, setFile] = React.useState(null)
+    const [formData, setFormData] = useState({
+      cadenaOrigen: '',
+      clave_tramite: '',
+      pass: ''
+    });
   
-    const handleFile = (newFile) => {
+    const handleInputChange = (event) => {
+      const { name, value } = event.target;
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    };
+  
+    const handleFileChange = (newFile) => {
       setFile(newFile)
-    }
+      //handleFileForm()
+    };
 
+    const handleFileChange2 = (newFile) => {
+      setCer(newFile)
+      //handleFileForm()
+    };
+
+    const handleFileChange3 = (newFile) => {
+      setKey(newFile)
+      //handleFileForm()
+    };
+  
+    const handleSubmit = async (event) => {
+      event.preventDefault();
+      
+   
+      isChecked1 == true ? setIsChecked1(1) : setIsChecked1(0)
+      isChecked2 == true ? setIsChecked2(1) : setIsChecked2(0)
+
+      console.log(isChecked1, isChecked2)
+
+      const data = new FormData();
+      data.append('pdf[]', file);
+      data.append('cadenaOrigen', formData.cadenaOrigen);
+      data.append('clave_tramite', formData.clave_tramite);
+      data.append('pass', formData.pass);
+ 
+      data.append('key', archivo_key);
+      data.append('cer', archivo_cer);
+      
+    
+      data.append('encabezado', isChecked1);
+      data.append('email', isChecked2);
+      
+
+        // Obtener el token desde localStorage
+    const token = localStorage.getItem('token');
+
+      try {
+        for (const value of data.values()) {
+          console.log(value);
+        }
+        const response = await axios.post(URL, data, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        console.log(response.data);
+
+        if (!response.data.errors){
+          let base64PDF = response.data[0].pdfFirmado
+          console.log(base64PDF)
+          setbase64PDF(base64PDF);
+          document.getElementById('base64Info').innerText = base64PDF
+          
+          
+          handleOpen();
+          
+        }
+        else{
+          alert(JSON.stringify(response.data.errors))
+        }
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+
+
+    };
+
+
+   // Función para convertir base64 a Blob
+        const descargarPDF = (pdf64) => {
+          base64toBlob(pdf64);
+          handleSaveFirestore();
+      }
+        
+      const base64toBlob = (pdf64) => {
+        console.log(pdf64)
+        const info = document.getElementById('base64Info').textContent
+         // Insert a link that allows the user to download the PDF file
+        let link = document.createElement('a');
+        link.innerHTML = 'Download PDF file';
+        link.download = file.name 
+        link.href = 'data:application/octet-stream;base64,' + info;
+        //document.body.appendChild(link);
+        link.click();
+        };
+  
+      // Ver pdf en pantalla
+        /*
+        
+        console.log(info)
+        var obj = document.createElement('object');
+        obj.style.width = '100%';
+        obj.style.height = '842pt';
+        obj.type = 'application/pdf';
+        obj.data = 'data:application/pdf;base64,' + info;
+        document.body.appendChild(obj);
+
+        */
+      
+
+    const handleSaveFirestore = async () => {
+      let info = document.getElementById('base64Info').textContent
+      let date = new Date();
+      try {
+        await addDoc(collection(db, 'base64Firestore'), {
+          pdf: info,
+          name: file.name,
+          description: formData.cadenaOrigen,
+          createdAt: Timestamp.fromDate(date)
+        });
+        alert('Document successfully written!');
+      } catch (error) {
+        console.error('Error writing document: ', error);
+        alert('Error writing document');
+      }
+    };
 
   return (
   <div>
@@ -106,7 +220,7 @@ export default function Home() {
       <CssBaseline />
       <Box
         sx={{
-          marginTop: 8,
+          marginTop: 1,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -118,7 +232,7 @@ export default function Home() {
         <Typography component="h1" variant="h5">
           Firma Digital
         </Typography>
-        <Box component="form" onSubmit={handleUpload} noValidate sx={{ mt: 1}}>
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1}}>
          
 
     <MuiFileInput  
@@ -128,10 +242,45 @@ export default function Home() {
           <UploadFileIcon />
         </InputAdornment>
   )}}
-      placeholder='Añadir archivo'
+      placeholder='Añadir archivo PDF'
       inputProps={{ accept: '.pdf' }} 
       value={file}
-      onChange={handleFile}
+      onChange={handleFileChange}
+      clearIconButtonProps={{
+        title: "Remove",
+        children: <CloseIcon fontSize="small" />
+      }}
+    />
+
+<MuiFileInput  sx={{ mt: 1}}
+    InputProps={{
+      startAdornment: (
+        <InputAdornment position="start">
+          <UploadFileIcon />
+        </InputAdornment>
+  )}}
+      placeholder='Añadir archivo Certificado'
+      inputProps={{ accept: '.cer' }} 
+      value={archivo_cer}
+      onChange={handleFileChange2}
+      clearIconButtonProps={{
+        title: "Remove",
+        children: <CloseIcon fontSize="small" />
+      }}
+    />
+
+<MuiFileInput  
+  sx={{ mt: 1}}
+    InputProps={{
+      startAdornment: (
+        <InputAdornment position="start">
+          <UploadFileIcon />
+        </InputAdornment>
+  )}}
+      placeholder='Añadir archivo FIEL'
+      inputProps={{ accept: '.key' }} 
+      value={archivo_key}
+      onChange={handleFileChange3}
       clearIconButtonProps={{
         title: "Remove",
         children: <CloseIcon fontSize="small" />
@@ -147,8 +296,9 @@ export default function Home() {
             label="Descripcion general"
             name="cadenaOrigen"
             autoFocus
-            value={cadenaOrigin}
-            onChange={(e) => setCadenaOrigen(e.target.value)}
+            //onChange={(e) => setCadenaOrigen(e.target.value)}
+            value={formData.cadenaOrigen}
+            onChange={handleInputChange}
           />
 
          
@@ -159,9 +309,10 @@ export default function Home() {
             fullWidth
             id="claveTramite"
             label="Clave tramite"
-            name="cadenaOrigen"
-            value={claveTramite}
-            onChange={(e) => setClaveTramite(e.target.value)}
+            name="clave_tramite"
+            //onChange={(e) => setClaveTramite(e.target.value)}
+            value={formData.clave_tramite}
+            onChange={handleInputChange}
           />
     
           <TextField
@@ -173,14 +324,24 @@ export default function Home() {
             SAT por el contribuyente"
             type="text"
             id="SATpass"
-            value={satpass}
-            onChange={(e) => setSATpass(e.target.value)}
+            //onChange={(e) => setSATpass(e.target.value)}
+            value={formData.pass}
+            onChange={handleInputChange}
           />
       
 
       <FormGroup>
-  <FormControlLabel control={<Switch />} label="Encabezado de pagina"  />
-  <FormControlLabel control={<Switch />} label="Correo Institucional" />
+  <FormControlLabel 
+  control={<Switch checked={isChecked1}
+          onChange={handleCheckboxChange1}
+          />} 
+          label="Encabezado de pagina"  
+          />
+  <FormControlLabel 
+  control={<Switch checked={isChecked2}
+          onChange={handleCheckboxChange2}
+          />} label="Correo Institucional" 
+          />
 
 </FormGroup>
 
@@ -199,7 +360,7 @@ export default function Home() {
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            sx={{ mt: 1, mb: 2 }}
           >
             Enviar
           </Button>
@@ -209,6 +370,33 @@ export default function Home() {
       
     </Container>
   </ThemeProvider>
+
+  <Modal
+  open={open}
+  onClose={handleClose}
+  aria-labelledby="modal-modal-title"
+  aria-describedby="modal-modal-description"
+>
+  <Box sx={style}>
+    <Typography id="modal-modal-title" variant="h6" component="h2">
+      Descargar PDF
+    </Typography>
+    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+      {file && file.name }
+      
+      <Button
+      onClick={descargarPDF}
+            type="button"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Descargar
+          </Button>
+    </Typography>
+  </Box>
+</Modal>
+<p style={{display: 'none'}} id='base64Info'></p>
   </div>
   );
 }

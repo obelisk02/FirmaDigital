@@ -19,11 +19,27 @@ function Logo() {
   }
 
 
-  function Navbar() {
-    //const navigate = useNavigate();
+
+
+  
+
+
+  function Header() {
+
     const navigate = useNavigate();
+   
+    const handleLogout = () => {
+      localStorage.removeItem("Token");
+      alert("Tokens have been removed");
+      navigate('/login')
+    }
+
     return (
-      <nav>
+      <header>
+        <div className="h-container">
+          <Logo />
+
+          <nav>
         <ul className="navbar">
           <li><a href="/Home">Firma</a></li>
           
@@ -33,24 +49,6 @@ function Logo() {
           <button className="btn" onClick={handleLogout}>Salir</button>
         </ul>
       </nav>
-    );
-  }
-
-  
-  const handleLogout = () => {
-   // const navigate = useNavigate();
-    localStorage.removeItem("Token");
-    alert("Tokens have been removed");
-    navigate('/login')
-  };
-
-  function Header() {
-    
-    return (
-      <header>
-        <div className="h-container">
-          <Logo />
-          <Navbar />
         </div>
       </header>
     );
