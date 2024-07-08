@@ -21,7 +21,7 @@ function Copyright(props) {
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {'Copyright © '}
       <Link color="inherit" href="https://wa.me/527581008128">
-        Informatica
+        Informatica SEDECO - Darwing Whatsapp
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -33,7 +33,7 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export default function Login() {
-    const apiEmail = import.meta.env.VITE_APP_API_EMAIL;
+    const apiEmail = import.meta.env.VITE_APP_API_EMAIL || 'mariana.gudino@sedeco.michoacan.gob.mx';
     const apiPass = import.meta.env.VITE_APP_API_PASS;
   
     const [email, setEmail] = useState(apiEmail);
