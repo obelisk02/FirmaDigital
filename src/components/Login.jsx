@@ -41,7 +41,7 @@ export default function Login() {
     const [error, setError] = useState('');
     //const [navigate, setNavigate] = useState(false);
   
-    const LOGIN_URL = "https://tableroelectronico-qa.michoacan.gob.mx/api/login";
+    const LOGIN_URL = "https://tableroelectronico.michoacan.gob.mx/api/login";
     const navigate = useNavigate();
   
     const handleLogin = async (e) => {
