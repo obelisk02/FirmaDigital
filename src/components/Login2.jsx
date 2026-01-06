@@ -24,6 +24,7 @@ const Login = () => {
       navigate('/home');
     } catch (err) {
       setError('Credenciales invalidas');
+      console.log(err);
     }
   };
 

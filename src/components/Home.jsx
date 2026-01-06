@@ -25,6 +25,7 @@ import Button from '@mui/material/Button';
 import Switch from '@mui/material/Switch';
 import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
+import CircularProgress from '@mui/material/CircularProgress';
 
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -49,6 +50,7 @@ export default function Home() {
 
   const [isChecked1, setIsChecked1] = useState(true);
   const [isChecked2, setIsChecked2] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCheckboxChange1 = (event) => {
     setIsChecked1(event.target.checked);
@@ -70,7 +72,7 @@ export default function Home() {
   };
 
 
-  const URL = "https://tableroelectronico-qa.michoacan.gob.mx/api/firmarPDF";
+  const URL = "https://tableroelectronico.michoacan.gob.mx/api/firmarPDF";
   const navigate = useNavigate();
 
   const defaultTheme = createTheme();
@@ -107,12 +109,13 @@ export default function Home() {
   
     const handleSubmit = async (event) => {
       event.preventDefault();
+      setIsLoading(true);
       
    
       isChecked1 == true ? setIsChecked1(1) : setIsChecked1(0)
       isChecked2 == true ? setIsChecked2(1) : setIsChecked2(0)
 
-      console.log(isChecked1, isChecked2)
+      //console.log(isChecked1, isChecked2)
 
       const data = new FormData();
       data.append('pdf[]', file);
@@ -124,8 +127,12 @@ export default function Home() {
       data.append('cer', archivo_cer);
       
     
-      data.append('encabezado', isChecked1);
-      data.append('email', isChecked2);
+      //data.append('encabezado', isChecked1);
+      //data.append('email', isChecked2);
+
+      //Siempre sea 1 en encabezado y correo institucional
+      data.append('encabezado', 1);
+      data.append('email', 1);
       
 
         // Obtener el token desde localStorage
@@ -167,6 +174,8 @@ export default function Home() {
           text: 'Error uploading file: ' + error,
           icon: "error"
         });
+      } finally {
+        setIsLoading(false);
       }
 
 
@@ -177,7 +186,9 @@ export default function Home() {
         const descargarPDF = (pdf64) => {
           base64toBlob(pdf64);
           handleClose()
-          handleSaveFirestore();
+          
+          //Se quito la funcion sube a firestore XXX
+          //handleSaveFirestore();
 
       }
         
@@ -389,8 +400,9 @@ export default function Home() {
             fullWidth
             variant="contained"
             sx={{ mt: 1, mb: 2 }}
+            disabled={isLoading}
           >
-            Enviar
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Enviar'}
           </Button>
          
         </Box>
