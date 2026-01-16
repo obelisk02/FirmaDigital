@@ -33,35 +33,37 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export default function Login() {
-    const apiEmail = import.meta.env.VITE_APP_API_EMAIL || 'mariana.gudino@sedeco.michoacan.gob.mx';
-    const apiPass = import.meta.env.VITE_APP_API_PASS;
-  
-    const [email, setEmail] = useState(apiEmail);
-    const [password, setPassword] = useState(apiPass);
-    const [error, setError] = useState('');
-    //const [navigate, setNavigate] = useState(false);
-  
-    const LOGIN_URL = "https://tableroelectronico.michoacan.gob.mx/api/login";
-    const navigate = useNavigate();
-  
-    const handleLogin = async (e) => {
-      e.preventDefault();
-      try {
-        const response = await axios.post(LOGIN_URL, { email, password });
-        localStorage.setItem('token', response.data.token);
-        navigate('/home');
-      } catch (err) {
-        setError('Credenciales invalidas');
-      }
-    };
-  
-    const handleLogout = () => {
-      localStorage.removeItem("Token");
-      //alert("Tokens have been removed");
-      navigate('/login')
-    };
+  const apiEmail = import.meta.env.VITE_APP_API_EMAIL || 'mariana.gudino@sedeco.michoacan.gob.mx';
+  const apiPass = import.meta.env.VITE_APP_API_PASS;
 
-  
+  const [email, setEmail] = useState(apiEmail);
+  const [password, setPassword] = useState(apiPass);
+  const [error, setError] = useState('');
+  //const [navigate, setNavigate] = useState(false);
+
+  const API_URL = import.meta.env.VITE_API_URL || '';
+  const LOGIN_URL = `${API_URL}/api/login`;
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(LOGIN_URL, { email, password });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userEmail', email);
+      navigate('/home');
+    } catch (err) {
+      setError('Credenciales invalidas');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("Token");
+    //alert("Tokens have been removed");
+    navigate('/login')
+  };
+
+
   return (
     <ThemeProvider theme={defaultTheme}>
       <Container component="main" maxWidth="xs">
@@ -92,7 +94,7 @@ export default function Login() {
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-            
+
             />
             <TextField
               margin="normal"
@@ -106,7 +108,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-        {error && <p>{error}</p>}
+            {error && <p>{error}</p>}
             <Button
               type="submit"
               fullWidth
@@ -115,7 +117,7 @@ export default function Login() {
             >
               Sign In
             </Button>
-           
+
           </Box>
         </Box>
         <Copyright sx={{ mt: 8, mb: 4 }} />

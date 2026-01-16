@@ -43,8 +43,12 @@ export default function Historial() {
   }, []);
 
   const getUsers = async () => {
+    const userEmail = localStorage.getItem('userEmail');
     const data = await getDocs(empCollectionRef);
-    setRows(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    const filteredDocs = data.docs
+      .map((doc) => ({ ...doc.data(), id: doc.id }))
+      .filter((doc) => doc.userEmail === userEmail);
+    setRows(filteredDocs);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -195,17 +199,30 @@ export default function Historial() {
                         <TableCell align="left">{row.description}</TableCell>
                         <TableCell align="left">{formattedDate}</TableCell>
                         <TableCell align="left">
-                        <Avatar sx={{ m: 1, bgcolor: 'error.main' }}
-                         onClick={() => {
-                          downloadFile(row.id, row.name);
-                          console.log(row.id)
-                         }}
-                          >
-                            <SaveAltTwoToneIcon />
-                          </Avatar>
-                          <p style={{display: 'none'}} id={row.id}> {row.pdf}</p>
-                          {/*row.pdf */}
-                          </TableCell>
+                          {row.pdf && row.pdf !== 'None' ? (
+                            <>
+                              <Avatar sx={{ m: 1, bgcolor: 'error.main' }}
+                              style={{
+                                fontSize: "20px",
+                                color: "white",
+                                cursor: "pointer",
+                              }}
+                              
+                                onClick={() => {
+                                  downloadFile(row.id, row.name);
+                                  console.log(row.id)
+                                }}
+                              >
+                                <SaveAltTwoToneIcon />
+                              </Avatar>
+                              <p style={{display: 'none'}} id={row.id}> {row.pdf}</p>
+                            </>
+                          ) : (
+                            <Avatar sx={{ m: 1, bgcolor: 'grey.400' }} title="No disponible">
+                              <SaveAltTwoToneIcon color="disabled" />
+                            </Avatar>
+                          )}
+                        </TableCell>
                         <TableCell align="left">
                           <Stack spacing={2} direction="row">
                           { /*  <EditIcon
@@ -218,13 +235,14 @@ export default function Historial() {
                               // onClick={() => editUser(row.id)}
                             />
                             */}
-                            <Avatar sx={{ m: 1, bgcolor: 'info.main' }}>
-                            <DeleteIcon
-                              style={{
+                            <Avatar sx={{ m: 1, bgcolor: 'info.main' }} 
+                            style={{
                                 fontSize: "20px",
                                 color: "white",
                                 cursor: "pointer",
-                              }}
+                              }}>
+                            <DeleteIcon
+                              
                               onClick={() => {
                                 deleteUser(row.id);
                                 console.log(row.id)

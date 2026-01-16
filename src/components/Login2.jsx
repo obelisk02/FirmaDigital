@@ -13,7 +13,8 @@ const Login = () => {
   const [error, setError] = useState('');
   //const [navigate, setNavigate] = useState(false);
 
-  const LOGIN_URL = "https://tableroelectronico.michoacan.gob.mx/api/login";
+  const API_URL = import.meta.env.VITE_API_URL || '';
+  const LOGIN_URL = `${API_URL}/api/login`;
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -21,6 +22,7 @@ const Login = () => {
     try {
       const response = await axios.post(LOGIN_URL, { email, password });
       localStorage.setItem('token', response.data.token);
+      console.log('Token almacenado en localStorage:', response.data.token);
       navigate('/home');
     } catch (err) {
       setError('Credenciales invalidas');

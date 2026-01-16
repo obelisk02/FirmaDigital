@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from './Header';
 import { db } from '../bd/firebase';
-import { collection, doc, addDoc, Timestamp  } from 'firebase/firestore';
+import { collection, doc, addDoc, Timestamp } from 'firebase/firestore';
 
 import Swal from "sweetalert2";
 import Box from '@mui/material/Box';
@@ -33,6 +33,7 @@ import CloseIcon from '@mui/icons-material/Close'
 import InfoIcon from '@mui/icons-material/Info';
 
 import { MuiFileInput } from 'mui-file-input'
+
 
 export default function Home() {
 
@@ -72,371 +73,400 @@ export default function Home() {
   };
 
 
-  const URL = "https://tableroelectronico.michoacan.gob.mx/api/firmarPDF";
+  const API_URL = import.meta.env.VITE_API_URL || '';
+  const URL = `${API_URL}/api/firmarPDF`;
   const navigate = useNavigate();
 
   const defaultTheme = createTheme();
 
 
-    const [formData, setFormData] = useState({
-      cadenaOrigen: '',
-      clave_tramite: '',
-      pass: ''
+  const [formData, setFormData] = useState({
+    cadenaOrigen: '',
+    clave_tramite: '',
+    pass: ''
+  });
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData({
+      ...formData,
+      [name]: value
     });
-  
-    const handleInputChange = (event) => {
-      const { name, value } = event.target;
-      setFormData({
-        ...formData,
-        [name]: value
-      });
-    };
-  
-    const handleFileChange = (newFile) => {
-      setFile(newFile)
-      //handleFileForm()
-    };
+  };
 
-    const handleFileChange2 = (newFile) => {
-      setCer(newFile)
-      //handleFileForm()
-    };
+  const handleFileChange = (newFile) => {
+    setFile(newFile)
+    //handleFileForm()
+  };
 
-    const handleFileChange3 = (newFile) => {
-      setKey(newFile)
-      //handleFileForm()
-    };
-  
-    const handleSubmit = async (event) => {
-      event.preventDefault();
-      setIsLoading(true);
-      
-   
-      isChecked1 == true ? setIsChecked1(1) : setIsChecked1(0)
-      isChecked2 == true ? setIsChecked2(1) : setIsChecked2(0)
+  const handleFileChange2 = (newFile) => {
+    setCer(newFile)
+    //handleFileForm()
+  };
 
-      //console.log(isChecked1, isChecked2)
+  const handleFileChange3 = (newFile) => {
+    setKey(newFile)
+    //handleFileForm()
+  };
 
-      const data = new FormData();
-      data.append('pdf[]', file);
-      data.append('cadenaOrigen', formData.cadenaOrigen);
-      data.append('clave_tramite', formData.clave_tramite);
-      data.append('pass', formData.pass);
- 
-      data.append('key', archivo_key);
-      data.append('cer', archivo_cer);
-      
-    
-      //data.append('encabezado', isChecked1);
-      //data.append('email', isChecked2);
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
 
-      //Siempre sea 1 en encabezado y correo institucional
-      data.append('encabezado', 1);
-      data.append('email', 1);
-      
 
-        // Obtener el token desde localStorage
+    isChecked1 == true ? setIsChecked1(1) : setIsChecked1(0)
+    isChecked2 == true ? setIsChecked2(1) : setIsChecked2(0)
+
+    //console.log(isChecked1, isChecked2)
+
+    const data = new FormData();
+    data.append('pdf[]', file);
+    data.append('cadenaOrigen', formData.cadenaOrigen);
+    data.append('clave_tramite', formData.clave_tramite);
+    data.append('pass', formData.pass);
+
+    data.append('key', archivo_key);
+    data.append('cer', archivo_cer);
+
+
+    //data.append('encabezado', isChecked1);
+    //data.append('email', isChecked2);
+
+    //Siempre sea 1 en encabezado y correo institucional
+    data.append('encabezado', 1);
+    data.append('email', 1);
+
+
+    // Obtener el token desde localStorage
     const token = localStorage.getItem('token');
 
-      try {
-        for (const value of data.values()) {
-          console.log(value);
+    try {
+      for (const value of data.values()) {
+        console.log(value);
+      }
+      const response = await axios.post(URL, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
         }
-        const response = await axios.post(URL, data, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        console.log(response.data);
+      });
+      console.log(response.data);
 
-        if (!response.data.errors){
-          let base64PDF = response.data[0].pdfFirmado
-          console.log(base64PDF)
-          setbase64PDF(base64PDF);
-          document.getElementById('base64Info').innerText = base64PDF
-          
-          
-          handleOpen();
-          
-        }
-        else{
-          //alert(JSON.stringify(response.data.errors))
-          Swal.fire({
-            text: JSON.stringify(response.data.errors),
-            icon: "error"
-          });
-        }
-      } catch (error) {
-        //console.error('Error uploading file:', error);
+      if (!response.data.errors) {
+        let base64PDF = response.data[0].pdfFirmado
+        //console.log(base64PDF)
+        setbase64PDF(base64PDF);
+        document.getElementById('base64Info').innerText = base64PDF
+
+
+        handleOpen();
+
+      }
+      else {
+        //alert(JSON.stringify(response.data.errors))
         Swal.fire({
-          title: 'Error en archivo',
-          text: 'Error uploading file: ' + error,
+          text: JSON.stringify(response.data.errors),
           icon: "error"
         });
-      } finally {
-        setIsLoading(false);
       }
+    } catch (error) {
+      //console.error('Error uploading file:', error);
+      Swal.fire({
+        title: 'Error en archivo',
+        text: 'Error uploading file: ' + error,
+        icon: "error"
+      });
+    } finally {
+      setIsLoading(false);
+    }
 
 
-    };
+  };
 
 
-   // Función para convertir base64 a Blob
-        const descargarPDF = (pdf64) => {
-          base64toBlob(pdf64);
-          handleClose()
-          
-          //Se quito la funcion sube a firestore XXX
-          //handleSaveFirestore();
+  // Función para convertir base64 a Blob
+  const descargarPDF = (pdf64) => {
+    base64toBlob(pdf64);
+    handleClose()
 
-      }
-        
-      const base64toBlob = (pdf64) => {
-        try {
-          console.log(pdf64)
-        const info = document.getElementById('base64Info').textContent
-         // Insert a link that allows the user to download the PDF file
-        let link = document.createElement('a');
-        link.innerHTML = 'Download PDF file';
-        link.download = file.name 
-        link.href = 'data:application/octet-stream;base64,' + info;
-        //document.body.appendChild(link);
-        link.click();
-        Swal.fire({
-          position: "bottom-end",
-          icon: "success",
-          title: "Archivo descargado",
-          showConfirmButton: false,
-          timer: 1500
-        });
+    //Se quito la funcion sube a firestore XXX
+    handleSaveFirestore();
 
-        } catch (error) {
-          Swal.fire({
-            title: 'Error en descargar',
-            text: error,
-            icon: "error"
-          });
-        }
-        };
+  }
+
+  const base64toBlob = (pdf64) => {
+    try {
+      console.log(pdf64)
+      const info = document.getElementById('base64Info').textContent
+      // Insert a link that allows the user to download the PDF file
+      let link = document.createElement('a');
+      link.innerHTML = 'Download PDF file';
+      link.download = file.name
+      link.href = 'data:application/octet-stream;base64,' + info;
+      //document.body.appendChild(link);
+      link.click();
+      Swal.fire({
+        position: "bottom-end",
+        icon: "success",
+        title: "Archivo descargado",
+        showConfirmButton: false,
+        timer: 1500
+      });
+
+    } catch (error) {
+      Swal.fire({
+        title: 'Error en descargar',
+        text: error,
+        icon: "error"
+      });
+    }
+  };
+
+  // Ver pdf en pantalla
+  /*
   
-      // Ver pdf en pantalla
-        /*
-        
-        console.log(info)
-        var obj = document.createElement('object');
-        obj.style.width = '100%';
-        obj.style.height = '842pt';
-        obj.type = 'application/pdf';
-        obj.data = 'data:application/pdf;base64,' + info;
-        document.body.appendChild(obj);
+  console.log(info)
+  var obj = document.createElement('object');
+  obj.style.width = '100%';
+  obj.style.height = '842pt';
+  obj.type = 'application/pdf';
+  obj.data = 'data:application/pdf;base64,' + info;
+  document.body.appendChild(obj);
 
-        */
-      
+  */
 
-    const handleSaveFirestore = async () => {
-      let info = document.getElementById('base64Info').textContent
-      let date = new Date();
-      try {
-        await addDoc(collection(db, 'base64Firestore'), {
-          pdf: info,
-          name: file.name,
-          description: formData.cadenaOrigen,
-          createdAt: Timestamp.fromDate(date)
+
+
+
+  const handleSaveFirestore = async () => {
+    let info = document.getElementById('base64Info').textContent;
+    let date = new Date();
+
+    // Calcular tamaño aproximado del base64 en bytes
+    const base64Length = info.length;
+    const sizeInBytes = Math.floor(base64Length * 0.75);
+
+    /*
+    if (sizeInBytes > 1000000) { // 1MB = 1048576 bytes
+      Swal.fire({
+          title: 'El archivo firmado es mayor a 1MB.',
+          text: 'No disponible para guardar.',
+          icon: "error"
         });
-        //alert('Document successfully written!');
-      } catch (error) {
-        console.error('Error writing document: ', error);
-        alert('Error writing document');
-      }
-    };
+ 
+      return;
+    }
+      */
+
+    try {
+      // Guardar metadatos en Firestore
+      await addDoc(collection(db, 'base64Firestore'), {
+        pdf: sizeInBytes <= 1000000 ? info : 'None',
+        name: file.name,
+        description: formData.cadenaOrigen,
+        createdAt: Timestamp.fromDate(date),
+        userEmail: localStorage.getItem('userEmail'),
+      });
+    } catch (error) {
+      console.error('Error writing document: ', error);
+      Swal.fire({
+        title: 'Error writing document: ',
+        text: error,
+        icon: "error"
+      });
+
+    }
+  };
 
   return (
-  <div>
-    <Header />
-    <ThemeProvider theme={defaultTheme}>
-    <Container component="main" maxWidth="xs">
-      <CssBaseline />
-      <Box
-        sx={{
-          marginTop: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Avatar sx={{ m: 1, bgcolor: 'error.main' }}>
-          <PictureAsPdfIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Firma Digital
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1}}>
-         
+    <div>
+      <Header />
+      <ThemeProvider theme={defaultTheme}>
+        <Container component="main" maxWidth="xs">
+          <CssBaseline />
+          <Box
+            sx={{
+              marginTop: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Avatar sx={{ m: 1, bgcolor: 'error.main' }}>
+              <PictureAsPdfIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5">
+              Firma Digital
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
-    <MuiFileInput  
-    InputProps={{
-      startAdornment: (
-        <InputAdornment position="start">
-          <UploadFileIcon />
-        </InputAdornment>
-  )}}
-      placeholder='Añadir archivo PDF'
-      inputProps={{ accept: '.pdf' }} 
-      value={file}
-      onChange={handleFileChange}
-      clearIconButtonProps={{
-        title: "Remove",
-        children: <CloseIcon fontSize="small" />
-      }}
-    />
 
-<MuiFileInput  sx={{ mt: 1}}
-    InputProps={{
-      startAdornment: (
-        <InputAdornment position="start">
-          <UploadFileIcon />
-        </InputAdornment>
-  )}}
-      placeholder='Añadir archivo Certificado'
-      inputProps={{ accept: '.cer' }} 
-      value={archivo_cer}
-      onChange={handleFileChange2}
-      clearIconButtonProps={{
-        title: "Remove",
-        children: <CloseIcon fontSize="small" />
-      }}
-    />
+              <MuiFileInput
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <UploadFileIcon />
+                    </InputAdornment>
+                  )
+                }}
+                placeholder='Añadir archivo PDF'
+                inputProps={{ accept: '.pdf' }}
+                value={file}
+                onChange={handleFileChange}
+                clearIconButtonProps={{
+                  title: "Remove",
+                  children: <CloseIcon fontSize="small" />
+                }}
+              />
 
-<MuiFileInput  
-  sx={{ mt: 1}}
-    InputProps={{
-      startAdornment: (
-        <InputAdornment position="start">
-          <UploadFileIcon />
-        </InputAdornment>
-  )}}
-      placeholder='Añadir archivo FIEL'
-      inputProps={{ accept: '.key' }} 
-      value={archivo_key}
-      onChange={handleFileChange3}
-      clearIconButtonProps={{
-        title: "Remove",
-        children: <CloseIcon fontSize="small" />
-      }}
-    />
- 
- 
- <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="cadenaOrigen"
-            label="Descripcion general"
-            name="cadenaOrigen"
-            autoFocus
-            //onChange={(e) => setCadenaOrigen(e.target.value)}
-            value={formData.cadenaOrigen}
-            onChange={handleInputChange}
-          />
+              <MuiFileInput sx={{ mt: 1 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <UploadFileIcon />
+                    </InputAdornment>
+                  )
+                }}
+                placeholder='Añadir archivo Certificado'
+                inputProps={{ accept: '.cer' }}
+                value={archivo_cer}
+                onChange={handleFileChange2}
+                clearIconButtonProps={{
+                  title: "Remove",
+                  children: <CloseIcon fontSize="small" />
+                }}
+              />
 
-         
+              <MuiFileInput
+                sx={{ mt: 1 }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <UploadFileIcon />
+                    </InputAdornment>
+                  )
+                }}
+                placeholder='Añadir archivo FIEL'
+                inputProps={{ accept: '.key' }}
+                value={archivo_key}
+                onChange={handleFileChange3}
+                clearIconButtonProps={{
+                  title: "Remove",
+                  children: <CloseIcon fontSize="small" />
+                }}
+              />
 
-<TextField
-            margin="normal"
-            required
-            fullWidth
-            id="claveTramite"
-            label="Clave tramite"
-            name="clave_tramite"
-            //onChange={(e) => setClaveTramite(e.target.value)}
-            value={formData.clave_tramite}
-            onChange={handleInputChange}
-          />
-    
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="pass"
-            label="Contraseña
+
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="cadenaOrigen"
+                label="Descripcion general"
+                name="cadenaOrigen"
+                autoFocus
+                //onChange={(e) => setCadenaOrigen(e.target.value)}
+                value={formData.cadenaOrigen}
+                onChange={handleInputChange}
+              />
+
+
+
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="claveTramite"
+                label="Clave tramite"
+                name="clave_tramite"
+                //onChange={(e) => setClaveTramite(e.target.value)}
+                value={formData.clave_tramite}
+                onChange={handleInputChange}
+              />
+
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="pass"
+                label="Contraseña
             SAT por el contribuyente"
-            type="text"
-            id="SATpass"
-            //onChange={(e) => setSATpass(e.target.value)}
-            value={formData.pass}
-            onChange={handleInputChange}
-          />
-      
+                type="text"
+                id="SATpass"
+                //onChange={(e) => setSATpass(e.target.value)}
+                value={formData.pass}
+                onChange={handleInputChange}
+              />
 
-      <FormGroup>
-  <FormControlLabel 
-  control={<Switch checked={isChecked1}
-          onChange={handleCheckboxChange1}
-          />} 
-          label="Encabezado de pagina"  
-          />
-  <FormControlLabel 
-  control={<Switch checked={isChecked2}
-          onChange={handleCheckboxChange2}
-          />} label="Correo Institucional" 
-          />
 
-</FormGroup>
+              <FormGroup>
+                <FormControlLabel
+                  control={<Switch checked={isChecked1}
+                    onChange={handleCheckboxChange1}
+                  />}
+                  label="Encabezado de pagina"
+                />
+                <FormControlLabel
+                  control={<Switch checked={isChecked2}
+                    onChange={handleCheckboxChange2}
+                  />} label="Correo Institucional"
+                />
 
-{/*
+              </FormGroup>
+
+              {/*
           <IconButton color="primary" aria-label="upload file" component="span">
       <UploadFileIcon />
     </IconButton>
 
     */}
 
-<LinearProgress variant="determinate" value={uploadProgress} />
+              <LinearProgress variant="determinate" value={uploadProgress} />
 
-{error && <p>{error}</p>}
+              {error && <p>{error}</p>}
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 1, mb: 2 }}
-            disabled={isLoading}
-          >
-            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Enviar'}
-          </Button>
-         
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 1, mb: 2 }}
+                disabled={isLoading}
+              >
+                {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Enviar'}
+              </Button>
+
+            </Box>
+          </Box>
+
+        </Container>
+      </ThemeProvider>
+
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Descargar PDF
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+            {file && file.name}
+
+            <Button
+              onClick={descargarPDF}
+              type="button"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Descargar
+            </Button>
+          </Typography>
         </Box>
-      </Box>
-      
-    </Container>
-  </ThemeProvider>
-
-  <Modal
-  open={open}
-  onClose={handleClose}
-  aria-labelledby="modal-modal-title"
-  aria-describedby="modal-modal-description"
->
-  <Box sx={style}>
-    <Typography id="modal-modal-title" variant="h6" component="h2">
-      Descargar PDF
-    </Typography>
-    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-      {file && file.name }
-      
-      <Button
-      onClick={descargarPDF}
-            type="button"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Descargar
-          </Button>
-    </Typography>
-  </Box>
-</Modal>
-<p style={{display: 'none'}} id='base64Info'></p>
-  </div>
+      </Modal>
+      <p style={{ display: 'none' }} id='base64Info'></p>
+    </div>
   );
 }
