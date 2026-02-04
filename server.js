@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import path from 'path';
@@ -7,14 +8,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3300;
 
 // Servir archivos estáticos de la carpeta 'dist'
 app.use(express.static(path.join(__dirname, 'dist')));
 
 // Configurar el proxy para las peticiones a la API
 app.use('/api', createProxyMiddleware({
-    target: 'https://tableroelectronico.michoacan.gob.mx/',
+    target: 'https://tableroelectronico.michoacan.gob.mx/api',
     changeOrigin: true,
     secure: false, // Si el certificado del servidor destino es auto-firmado
     onProxyReq: (proxyReq, req, res) => {
@@ -27,7 +28,7 @@ app.use('/api', createProxyMiddleware({
 }));
 
 // Manejar cualquier otra ruta devolviendo el index.html (para SPA)
-app.get('*', (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
